@@ -5,6 +5,7 @@
 import {
   FileText,
   FolderOpen,
+  PencilLine,
   Sparkles,
   Upload,
 } from 'lucide-react'
@@ -34,6 +35,12 @@ export const routerData: IRouterDataItem[] = [
     translationKey: 'aiSocial',
     path: '/ai-social',
     icon: <Sparkles size={20} />,
+  },
+  {
+    name: 'Copy Studio',
+    translationKey: 'copyStudio',
+    path: '/copy-studio',
+    icon: <PencilLine size={20} />,
   },
   {
     name: 'Publish',

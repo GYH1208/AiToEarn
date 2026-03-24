@@ -150,9 +150,17 @@ const GenerationDetailContent = memo(({ onClose }: { onClose: () => void }) => {
         setTasks(prev => pageNum === 1 ? list : [...prev, ...list])
         setHasMore(list.length === pageSize)
       }
+      else {
+        // 接口未返回有效数据（例如未登录/无权限）时，停止无限滚动触发，避免 loading 闪烁循环
+        if (pageNum === 1) {
+          setTasks([])
+        }
+        setHasMore(false)
+      }
     }
     catch {
-      // 静默失败
+      // 请求失败时停止继续翻页，避免 IntersectionObserver 持续触发
+      setHasMore(false)
     }
     finally {
       setLoading(false)

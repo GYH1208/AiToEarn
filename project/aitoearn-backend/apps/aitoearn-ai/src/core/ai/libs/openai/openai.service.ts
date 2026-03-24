@@ -5,6 +5,9 @@ import OpenAI from 'openai'
 import { OpenaiConfig } from './openai.config'
 import { SoraCharacterResponse, SoraCreateCharacterRequest } from './openai.interface'
 
+/** 单模型覆盖 OpenAI 兼容网关（如本地 vLLM），与全局 config.ai.openai 互斥使用 */
+export type OpenAiCompatEndpoint = { baseUrl: string, apiKey: string }
+
 @Injectable()
 export class OpenaiService {
   private readonly logger = new Logger(OpenaiService.name)
@@ -26,14 +29,16 @@ export class OpenaiService {
     })
   }
 
-  private _createChatModel(options: Partial<OpenAIChatInput>): ChatOpenAI {
+  private _createChatModel(options: Partial<OpenAIChatInput>, endpoint?: OpenAiCompatEndpoint): ChatOpenAI {
+    const baseUrl = endpoint?.baseUrl ?? this.config.baseUrl
+    const apiKey = endpoint?.apiKey ?? options.apiKey ?? this.config.apiKey
     return new ChatOpenAI({
       ...options,
       maxRetries: 1,
       timeout: options.timeout ?? this.config.timeout,
-      apiKey: options.apiKey ?? this.config.apiKey,
+      apiKey,
       configuration: {
-        baseURL: this.config.baseUrl,
+        baseURL: baseUrl,
       },
       streaming: true,
     })
@@ -42,22 +47,36 @@ export class OpenaiService {
   async createChatCompletionStream(options: Partial<OpenAIChatInput> & {
     model: string
     messages: BaseMessage[]
+    endpoint?: OpenAiCompatEndpoint
   }) {
     const {
       messages,
+      endpoint,
+      ...rest
     } = options
 
-    const chatModel = this._createChatModel(options)
-    return await chatModel.stream(messages, options)
+    const chatModel = this._createChatModel(rest, endpoint)
+    return await chatModel.stream(messages, rest)
   }
 
-  async createRawStream(options: OpenAI.Chat.ChatCompletionCreateParamsStreaming) {
-    return this.openAI.chat.completions.create(options)
+  async createRawStream(
+    options: OpenAI.Chat.ChatCompletionCreateParamsStreaming,
+    endpoint?: OpenAiCompatEndpoint,
+  ) {
+    const client = endpoint
+      ? new OpenAI({
+          apiKey: endpoint.apiKey,
+          baseURL: endpoint.baseUrl,
+          timeout: this.config.timeout,
+        })
+      : this.openAI
+    return client.chat.completions.create(options)
   }
 
   async createChatCompletion(options: Partial<OpenAIChatInput> & {
     model: string
     messages: BaseMessage[]
+    endpoint?: OpenAiCompatEndpoint
   }): Promise<AIMessageChunk> {
     const stream = await this.createChatCompletionStream(options)
     let result: AIMessageChunk | undefined

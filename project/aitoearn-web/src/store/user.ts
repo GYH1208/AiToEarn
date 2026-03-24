@@ -49,7 +49,7 @@ const state: IUserStore = {
   token: undefined,
   userInfo: {},
   isAddAccountPorxy: false,
-  lang: i18next.language || 'en',
+  lang: i18next.language || 'zh-CN',
   sidebarCollapsed: false,
   hasEverLoggedIn: false,
   _appInitialized: false,
@@ -82,12 +82,12 @@ export const useUserStore = createPersistStore(
       },
 
       async appInit() {
-        // 自动登录：从 init 服务生成的 token 文件中获取
         if (!_get().token) {
           try {
             const res = await fetch('/auto-login')
             const data = await res.json()
-            if (data.token) methods.setToken(data.token)
+            if (data.token)
+              methods.setToken(data.token)
           } catch {}
         }
         set({ _appInitialized: true })

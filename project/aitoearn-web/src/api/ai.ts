@@ -149,21 +149,24 @@ export function getLogs(params?: {
   return http.get('ai/logs', params)
 }
 
-// AI聊天接口 - 支持流式和非流式响应
+// AI聊天接口 - 支持流式和非流式响应（请求体字段与后端 ChatCompletionDto 一致，使用 camelCase）
 export async function aiChatStream(data: {
   messages: Array<{ role: string, content: string }>
   stream?: boolean
   model?: string
   temperature?: number
-  presence_penalty?: number
-  frequency_penalty?: number
-  top_p?: number
-  max_tokens?: number
+  presencePenalty?: number
+  frequencyPenalty?: number
+  topP?: number
+  maxTokens?: number
 }) {
   const token = useUserStore.getState().token
   const lang = useUserStore.getState().lang
 
-  const response = await fetch('https://aitoearn.ai/api/ai/chat', {
+  const base = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '')
+  const url = base ? `${base}/ai/chat` : '/api/ai/chat'
+
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -174,10 +177,10 @@ export async function aiChatStream(data: {
       stream: false, // 使用非流式响应
       model: 'gpt-5.1-all',
       temperature: 1,
-      presence_penalty: 0,
-      frequency_penalty: 0,
-      top_p: 1,
-      max_tokens: 8000, // 增加到8000以支持更长的响应（包括base64图片）
+      presencePenalty: 0,
+      frequencyPenalty: 0,
+      topP: 1,
+      maxTokens: 8000,
       ...data,
     }),
   })

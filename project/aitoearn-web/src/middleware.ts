@@ -37,22 +37,20 @@ export function middleware(req: NextRequest) {
   if (req.nextUrl.pathname.includes('icon') || req.nextUrl.pathname.includes('chrome')) {
     return NextResponse.next()
   }
-  let lng: string | undefined | null
-  if (req.cookies.has(cookieName))
-    lng = acceptLanguage.get(req.cookies.get(cookieName)?.value)
-  if (!lng)
-    lng = acceptLanguage.get(req.headers.get('Accept-Language'))
-  if (!lng)
-    lng = fallbackLng
+  // 默认语言固定为 fallbackLng（当前为中文），不读取历史 cookie 作为默认跳转依据
+  const lng = fallbackLng
 
   // Redirect if lng in path is not supported
   if (
     !languages.some(loc => req.nextUrl.pathname.startsWith(`/${loc}`))
     && !req.nextUrl.pathname.startsWith('/_next')
   ) {
-    return NextResponse.redirect(
+    const response = NextResponse.redirect(
       new URL(`/${lng}${req.nextUrl.pathname}${req.nextUrl.search}`, req.url),
     )
+    // 同步写入语言 cookie，避免后续逻辑继续沿用旧值
+    response.cookies.set(cookieName, lng)
+    return response
   }
 
   if (req.headers.has('referer')) {

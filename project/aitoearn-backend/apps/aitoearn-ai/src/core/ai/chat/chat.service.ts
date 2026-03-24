@@ -13,7 +13,7 @@ import { from, merge, Observable } from 'rxjs'
 import { catchError, concatMap, ignoreElements, last, share } from 'rxjs/operators'
 import { config } from '../../../config'
 import { GeminiService } from '../libs/gemini/gemini.service'
-import { OpenaiService } from '../libs/openai'
+import { OpenaiService, OpenAiCompatEndpoint } from '../libs/openai'
 import { ModelsConfigService } from '../models-config'
 import { calculatePricingPoints, ChatPricing, isFlatPricing, TokenUsageDetails } from '../pricing/pricing-calculator'
 import {
@@ -109,6 +109,20 @@ export class ChatService {
     return content
   }
 
+  /**
+   * 从 models.chat 配置读取单模型 OpenAI 兼容网关（不在 GET /models/chat 中暴露给前端）
+   */
+  private getOpenAiCompatEndpointForModel(modelName: string): OpenAiCompatEndpoint | undefined {
+    const list = this.modelsConfigService.config.chat as Array<Record<string, unknown> & { name: string }>
+    const entry = list.find(m => m.name === modelName)
+    const baseUrl = entry?.['openaiBaseUrl']
+    if (typeof baseUrl !== 'string' || !baseUrl.trim())
+      return undefined
+    const rawKey = entry?.['openaiApiKey']
+    const apiKey = typeof rawKey === 'string' && rawKey.length > 0 ? rawKey : 'local'
+    return { baseUrl: baseUrl.trim(), apiKey }
+  }
+
   async chatCompletion(request: ChatCompletionDto, userId: string) {
     const { messages, model, ...params } = request
 
@@ -116,14 +130,24 @@ export class ChatService {
       return new ChatMessage(message)
     })
 
+    const endpoint = this.getOpenAiCompatEndpointForModel(model)
+
     const result = await this.openaiService.createChatCompletion({
       model,
       messages: langchainMessages,
       ...params,
       modalities: params.modalities as OpenAIClient.Chat.ChatCompletionModality[],
+      endpoint,
     })
 
-    const usage = result.usage_metadata
+    let usage = result.usage_metadata
+    if (!usage && endpoint) {
+      usage = {
+        input_tokens: 0,
+        output_tokens: 0,
+        total_tokens: 0,
+      }
+    }
     if (!usage) {
       throw new AppException(ResponseCode.AiCallFailed, { error: 'Missing usage metadata' })
     }
@@ -320,12 +344,17 @@ export class ChatService {
 
     const startedAt = new Date()
 
-    const stream = await this.openaiService.createRawStream({
+    const endpoint = this.getOpenAiCompatEndpointForModel(model)
+    const streamBody: OpenAI.Chat.ChatCompletionCreateParamsStreaming = {
       ...body,
       model,
       stream: true,
-      stream_options: { include_usage: true },
-    } as OpenAI.Chat.ChatCompletionCreateParamsStreaming)
+    } as OpenAI.Chat.ChatCompletionCreateParamsStreaming
+    if (!endpoint) {
+      streamBody.stream_options = { include_usage: true }
+    }
+
+    const stream = await this.openaiService.createRawStream(streamBody, endpoint)
 
     const stream$ = from(stream as AsyncIterable<OpenAI.Chat.ChatCompletionChunk>).pipe(share())
 

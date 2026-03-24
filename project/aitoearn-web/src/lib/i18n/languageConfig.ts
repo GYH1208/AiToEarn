@@ -63,7 +63,7 @@ export const LANGUAGE_METADATA: Record<string, LanguageMetadata> = {
 }
 
 // 从 LANGUAGE_METADATA 派生的配置
-export const fallbackLng = 'en'
+export const fallbackLng = 'zh-CN'
 export const languages = Object.keys(LANGUAGE_METADATA)
 
 /**

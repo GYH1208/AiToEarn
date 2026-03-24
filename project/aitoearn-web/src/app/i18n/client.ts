@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react'
 import { initReactI18next, useTranslation } from 'react-i18next'
 
 import { useGetClientLng } from '@/hooks/useSystem'
-import { cookieName, getOptions, languages } from './settings'
+import { cookieName, fallbackLng, getOptions, languages } from './settings'
 
 const runsOnServerSide = typeof window === 'undefined'
 
@@ -36,10 +36,10 @@ i18next
   )
   // .use(LocizeBackend) // locize backend could be used on client side, but prefer to keep it in sync with server side
   .init({
-    ...getOptions(undefined), // 不传递 lng 参数，让 i18next 自动检测
-    lng: undefined, // let detect the language on client side
+    ...getOptions(fallbackLng),
+    lng: fallbackLng,
     detection: {
-      order: ['path', 'htmlTag', 'cookie', 'navigator'],
+      order: ['path', 'cookie', 'htmlTag'],
     },
     preload: runsOnServerSide ? languages : [],
   })

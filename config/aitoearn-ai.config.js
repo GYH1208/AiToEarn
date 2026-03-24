@@ -40,6 +40,12 @@ const {
   SERVER_URL,
 } = process.env
 
+/** 文案工坊 / 本地 OpenAI 兼容推理（如 vLLM、Ollama OpenAI 插件） */
+const {
+  COPY_STUDIO_LOCAL_OPENAI_BASE_URL,
+  COPY_STUDIO_LOCAL_OPENAI_API_KEY,
+} = process.env
+
 function parseGeminiKeyPairs() {
   if (!GEMINI_KEY_PAIRS) {
     throw new Error('GEMINI_KEY_PAIRS 环境变量必须配置')
@@ -160,6 +166,22 @@ module.exports = {
     },
     models: {
       chat: [
+        {
+          name: 'Qwen3-30B-A3B-AWQ',
+          description: '本地 Qwen3 文案（OpenAI 兼容，用于文案工坊等）',
+          inputModalities: ['text'],
+          outputModalities: ['text'],
+          openaiBaseUrl: COPY_STUDIO_LOCAL_OPENAI_BASE_URL || 'http://192.168.0.93:8000/v1',
+          openaiApiKey: COPY_STUDIO_LOCAL_OPENAI_API_KEY || 'local',
+          pricing: {
+            tiers: [
+              {
+                input: { text: '0' },
+                output: { text: '0' },
+              },
+            ],
+          },
+        },
         {
           name: 'gemini-3.1-pro-preview',
           description: 'Gemini 3.1 Pro Preview',

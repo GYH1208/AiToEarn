@@ -51,31 +51,9 @@ export async function request<T>(params: RequestParamsWithSilent) {
     const contactLabel = directTrans('common', 'contact')
     const contactText = `${contactLabel} ${CONTACT}`
 
-    // 未登录拦截
-    if (data.code === 401 && !useUserStore.getState().token) {
-      // 如果是 silent 模式，返回完整响应以便调用方处理
-      if (params.silent) {
-        return data
-      }
-      return null
-    }
-
-    // 已登录、但是登录过期
-    if (data.code === 401) {
-      useUserStore.getState().logout()
-      // 如果是 silent 模式，返回完整响应以便调用方处理
-      if (params.silent) {
-        return data
-      }
-    }
-
-    // 用户未找到，登出
-    if (data.code === 12000) {
-      useUserStore.getState().logout()
-      if (params.silent) {
-        return data
-      }
-      return null
+    // 本地部署：401 / 12000 不再触发 logout 整页刷新，静默返回
+    if (data.code === 401 || data.code === 12000) {
+      return params.silent ? data : null
     }
 
     // if (data.code !== 0) {

@@ -2,7 +2,6 @@ import { dir } from 'i18next'
 import Script from 'next/script'
 import { useTranslation } from '@/app/i18n'
 import { fallbackLng, languages } from '@/app/i18n/settings'
-import AnnouncementBanner from '@/app/layout/AnnouncementBanner'
 import LayoutSidebar from '@/app/layout/LayoutSidebar'
 import { MainContent } from '@/app/layout/MainContent'
 import MobileNav from '@/app/layout/MobileNav'
@@ -30,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lng: stri
 
   // 添加x-default
   alternateRefs.push({
-    href: `${baseUrl}/en`,
+    href: `${baseUrl}/${fallbackLng}`,
     hreflang: 'x-default',
   })
 
@@ -103,7 +102,7 @@ export default async function RootLayout({
             {/* 桌面端侧边栏 */}
             <LayoutSidebar />
             {/* 主内容区域 - 根据页面类型动态控制 pt-14 */}
-            <MainContent banner={<AnnouncementBanner />}>{children}</MainContent>
+            <MainContent>{children}</MainContent>
             {/* eslint-disable-next-line next/no-sync-scripts */}
             <script src="/js/xhs_web_sign.js" />
             {/* eslint-disable-next-line next/no-sync-scripts */}

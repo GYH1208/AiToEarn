@@ -7,29 +7,20 @@
 
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { ThemeProvider } from 'next-themes'
-import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect } from 'react'
 import { useShallow } from 'zustand/shallow'
 import LoginDialog from '@/app/layout/LoginDialog'
-import { useLoginDialogStore } from '@/app/layout/LoginDialog/store'
 import { InviteCodeHandler } from '@/components/InviteCodeHandler'
 import SettingsModal from '@/components/SettingsModal'
 import { useSettingsModalStore } from '@/components/SettingsModal/store'
 import NotificationCenter from '@/components/ui/NotificationCenter'
 import { Toaster } from '@/components/ui/sonner'
 import { useUserStore } from '@/store/user'
-import { isPublicPage } from '@/utils/route'
 
 export function Providers({ children, lng }: { children: React.ReactNode, lng: string }) {
-  const pathname = usePathname()
-  const router = useRouter()
-  // 用于追踪是否已经在当前路由弹出过登录框，避免重复弹出
-  const hasPromptedRef = useRef(false)
-
-  const { _hasHydrated, token, _appInitialized } = useUserStore(
+  const { _hasHydrated, _appInitialized } = useUserStore(
     useShallow(state => ({
       _hasHydrated: state._hasHydrated,
-      token: state.token,
       _appInitialized: state._appInitialized,
     })),
   )
@@ -46,35 +37,6 @@ export function Providers({ children, lng }: { children: React.ReactNode, lng: s
   useEffect(() => {
     useUserStore.getState().setLang(lng)
   }, [lng])
-
-  // 未登录用户访问非公开页面时，跳转到登录页
-  useEffect(() => {
-    // 等待持久化数据同步完成和 appInit 完成（含自动登录）
-    if (!_hasHydrated || !_appInitialized) {
-      return
-    }
-
-    // 已登录用户不需要跳转
-    if (token) {
-      hasPromptedRef.current = false
-      return
-    }
-
-    // 公开页面不需要跳转
-    if (isPublicPage(pathname)) {
-      hasPromptedRef.current = false
-      return
-    }
-
-    // 避免重复跳转
-    if (hasPromptedRef.current) {
-      return
-    }
-
-    // 在当前页面弹出登录框，不跳转
-    hasPromptedRef.current = true
-    useLoginDialogStore.getState().openLoginDialog({ fromGuard: true })
-  }, [_hasHydrated, _appInitialized, token, pathname])
 
   // 拦截 @react-oauth/google 的脚本加载，添加 ?hl= 参数以设置按钮语言
   useLayoutEffect(() => {
@@ -111,7 +73,12 @@ export function Providers({ children, lng }: { children: React.ReactNode, lng: s
             onClose={closeSettings}
             defaultTab={settingsDefaultTab}
           />
-          {children}
+          {/* 等待 appInit（含自动登录）完成后再渲染页面，避免子组件在 token 就位前发出无认证请求 */}
+          {_hasHydrated && _appInitialized ? children : (
+            <div className="flex h-screen items-center justify-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-foreground" />
+            </div>
+          )}
         </GoogleOAuthProvider>
       </ThemeProvider>
     </>

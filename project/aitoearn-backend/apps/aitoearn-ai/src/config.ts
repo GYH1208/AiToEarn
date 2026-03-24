@@ -83,6 +83,9 @@ export const aiModelsConfigSchema = z.object({
     inputModalities: z.array(z.enum(['text', 'image', 'video', 'audio'])),
     outputModalities: z.array(z.enum(['text', 'image', 'video', 'audio'])),
     pricing: chatPricingSchema,
+    /** 单模型 OpenAI 兼容网关（本地 vLLM 等），见 chat.service getOpenAiCompatEndpointForModel */
+    openaiBaseUrl: z.string().optional(),
+    openaiApiKey: z.string().optional(),
   })),
   image: z.object({
     generation: z.array(z.object({
