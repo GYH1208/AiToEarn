@@ -61,6 +61,30 @@ function getState(): IUserStore {
 
 const isNoAuthMode = process.env.NEXT_PUBLIC_DISABLE_AUTH === 'true'
 
+async function tryFetchAutoLoginToken() {
+  try {
+    const res = await fetch('/auto-login')
+    const data = await res.json()
+    if (data?.token)
+      return data.token as string
+  }
+  catch {}
+
+  const proxyUrl = process.env.NEXT_PUBLIC_PROXY_URL
+  if (!proxyUrl)
+    return null
+
+  try {
+    const res = await fetch(`${proxyUrl.replace(/\/$/, '')}/auto-login`)
+    const data = await res.json()
+    if (data?.token)
+      return data.token as string
+  }
+  catch {}
+
+  return null
+}
+
 export const useUserStore = createPersistStore(
   {
     ...getState(),
@@ -84,16 +108,13 @@ export const useUserStore = createPersistStore(
       },
 
       async appInit() {
-        if (!isNoAuthMode && !_get().token) {
-          try {
-            const res = await fetch('/auto-login')
-            const data = await res.json()
-            if (data.token)
-              methods.setToken(data.token)
-          } catch {}
+        if (!_get().token) {
+          const token = await tryFetchAutoLoginToken()
+          if (token)
+            methods.setToken(token)
         }
         set({ _appInitialized: true })
-        if (!isNoAuthMode) {
+        if (!isNoAuthMode || _get().token) {
           methods.getUserInfo()
           useAccountStore.getState().accountInit()
         }

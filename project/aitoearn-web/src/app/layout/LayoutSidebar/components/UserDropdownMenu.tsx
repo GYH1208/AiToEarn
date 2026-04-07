@@ -23,7 +23,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { CONTACT } from '@/constant'
 import { cn } from '@/lib/utils'
 import { useUserStore } from '@/store/user'
-import { navigateToLogin } from '@/utils/auth'
 import { getOssUrl } from '@/utils/oss'
 
 /** GitHub SVG 图标 */
@@ -265,19 +264,19 @@ export function UserDropdownMenu({
 
   // 未登录状态显示登录按钮
   if (!token) {
-    const handleLogin = () => navigateToLogin()
+    const openPersonalCenter = () => onOpenSettings('profile')
 
     if (collapsed) {
       return (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button onClick={handleLogin} size="icon" className="h-9 w-9" data-testid="sidebar-login-btn">
-                <span className="text-sm font-semibold">In</span>
+              <Button onClick={openPersonalCenter} size="icon" className="h-9 w-9" data-testid="sidebar-login-btn">
+                <span className="text-sm font-semibold">个</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">
-              <p>{t('login')}</p>
+              <p>个人中心</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -285,8 +284,8 @@ export function UserDropdownMenu({
     }
 
     return (
-      <Button onClick={handleLogin} className="mt-2 w-full" data-testid="sidebar-login-btn">
-        {t('login')}
+      <Button onClick={openPersonalCenter} className="mt-2 w-full" data-testid="sidebar-login-btn">
+        个人中心
       </Button>
     )
   }

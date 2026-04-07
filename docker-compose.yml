@@ -192,7 +192,7 @@ services:
       NODE_ENV: production
       APP_ENV: production
       APP_NAME: aitoearn-server
-      APP_DOMAIN: localhost
+      APP_DOMAIN: localhost:8080
 
       MONGODB_HOST: mongodb
       MONGODB_PORT: 27017

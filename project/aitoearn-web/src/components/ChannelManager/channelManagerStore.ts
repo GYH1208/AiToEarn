@@ -56,6 +56,42 @@ function isPluginSupportedPlatform(platform: PlatType): platform is PluginPlatfo
   return PLUGIN_SUPPORTED_PLATFORMS.includes(platform as PluginPlatformType)
 }
 
+/**
+ * 免登录模式下确保前端持有可用 token（来自 /auto-login）
+ */
+async function ensureNoAuthToken() {
+  const isNoAuthMode = process.env.NEXT_PUBLIC_DISABLE_AUTH === 'true'
+  if (!isNoAuthMode)
+    return
+  if (useUserStore.getState().token)
+    return
+
+  try {
+    const res = await fetch('/auto-login')
+    const data = await res.json()
+    if (data?.token) {
+      useUserStore.getState().setToken(data.token)
+      return
+    }
+  }
+  catch {
+  }
+
+  const proxyUrl = process.env.NEXT_PUBLIC_PROXY_URL
+  if (!proxyUrl)
+    return
+
+  try {
+    const res = await fetch(`${proxyUrl.replace(/\/$/, '')}/auto-login`)
+    const data = await res.json()
+    if (data?.token) {
+      useUserStore.getState().setToken(data.token)
+    }
+  }
+  catch {
+  }
+}
+
 /** 初始授权状态 */
 const initialAuthState: AuthState = {
   platform: null,
@@ -199,8 +235,9 @@ async function getAuthUrl(platform: PlatType, spaceId?: string): Promise<AuthUrl
         return null
     }
 
-    // 检查登录状态
-    if (res?.code === 1) {
+    // 标准模式下 code=1 触发登出；免登录模式下不做登出打断
+    const isNoAuthMode = process.env.NEXT_PUBLIC_DISABLE_AUTH === 'true'
+    if (res?.code === 1 && !isNoAuthMode) {
       useUserStore.getState().logout()
       return null
     }
@@ -363,6 +400,9 @@ export const useChannelManagerStore = create(
       async startAuth(platform: PlatType, spaceId?: string) {
         // 清理之前的定时器
         clearAllTimers()
+
+        // 免登录模式下，授权前先尝试静默拿 token，避免后端鉴权接口返回空 URL
+        await ensureNoAuthToken()
 
         // 设置授权状态
         set({

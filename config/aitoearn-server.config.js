@@ -25,6 +25,11 @@ const {
   APP_DOMAIN,
 } = process.env
 
+const isLocalDomain = (APP_DOMAIN || '').includes('localhost')
+  || (APP_DOMAIN || '').includes('127.0.0.1')
+  || (APP_DOMAIN || '').includes(':')
+const APP_PROTOCOL = isLocalDomain ? 'http' : 'https'
+
 const {
   MAIL_USER,
   MAIL_PASS,
@@ -129,12 +134,12 @@ module.exports = {
       xhsCreatorUri: 'http://39.106.41.190:7008',
     },
     shortLink: {
-      baseUrl: `https://${APP_DOMAIN}/api/shortLink/`,
+      baseUrl: `${APP_PROTOCOL}://${APP_DOMAIN}/api/shortLink/`,
     },
     bilibili: {
       id: BILIBILI_CLIENT_ID,
       secret: BILIBILI_CLIENT_SECRET,
-      authBackHost: `https://${APP_DOMAIN}/api/plat/bilibili/auth/back`,
+      authBackHost: `${APP_PROTOCOL}://${APP_DOMAIN}/api/plat/bilibili/auth/back`,
     },
     google: {
       id: GOOGLE_CLIENT_ID,
@@ -149,39 +154,39 @@ module.exports = {
     kwai: {
       id: KWAI_CLIENT_ID,
       secret: KWAI_CLIENT_SECRET,
-      authBackHost: `https://${APP_DOMAIN}/api/plat/kwai/auth/back`,
+      authBackHost: `${APP_PROTOCOL}://${APP_DOMAIN}/api/plat/kwai/auth/back`,
     },
     pinterest: {
       id: PINTEREST_CLIENT_ID,
       secret: PINTEREST_CLIENT_SECRET,
-      authBackHost: `https://${APP_DOMAIN}/api/plat/pinterest/authWebhook`,
+      authBackHost: `${APP_PROTOCOL}://${APP_DOMAIN}/api/plat/pinterest/authWebhook`,
       baseUrl: 'https://api.pinterest.com',
       test_authorization: PINTEREST_TEST_AUTHORIZATION,
     },
     tiktok: {
       clientId: TIKTOK_CLIENT_ID,
       clientSecret: TIKTOK_CLIENT_SECRET,
-      redirectUri: `https://${APP_DOMAIN}/api/plat/tiktok/auth/back`,
-      promotionRedirectUri: `https://${APP_DOMAIN}/api/plat/tiktok/auth/redirect`,
+      redirectUri: `${APP_PROTOCOL}://${APP_DOMAIN}/api/plat/tiktok/auth/back`,
+      promotionRedirectUri: `${APP_PROTOCOL}://${APP_DOMAIN}/api/plat/tiktok/auth/redirect`,
       scopes: [
         'user.info.basic',
         'user.info.profile',
         'video.upload',
         'video.publish',
       ],
-      promotionBaseUrl: `https://${APP_DOMAIN}/promo`,
+      promotionBaseUrl: `${APP_PROTOCOL}://${APP_DOMAIN}/promo`,
     },
     twitter: {
       clientId: TWITTER_CLIENT_ID,
       clientSecret: TWITTER_CLIENT_SECRET,
-      redirectUri: `https://${APP_DOMAIN}/api/plat/twitter/auth/back`,
+      redirectUri: `${APP_PROTOCOL}://${APP_DOMAIN}/api/plat/twitter/auth/back`,
     },
     oauth: {
       facebook: {
         clientId: FACEBOOK_CLIENT_ID,
         clientSecret: FACEBOOK_CLIENT_SECRET,
         configId: FACEBOOK_CONFIG_ID,
-        redirectUri: `https://${APP_DOMAIN}/api/plat/meta/auth/back`,
+        redirectUri: `${APP_PROTOCOL}://${APP_DOMAIN}/api/plat/meta/auth/back`,
         scopes: [
           'public_profile',
           'pages_show_list',
@@ -195,7 +200,7 @@ module.exports = {
       threads: {
         clientId: THREADS_CLIENT_ID,
         clientSecret: THREADS_CLIENT_SECRET,
-        redirectUri: `https://${APP_DOMAIN}/api/plat/meta/auth/back`,
+        redirectUri: `${APP_PROTOCOL}://${APP_DOMAIN}/api/plat/meta/auth/back`,
         scopes: [
           'threads_basic',
           'threads_content_publish',
@@ -208,9 +213,9 @@ module.exports = {
       instagram: {
         clientId: INSTAGRAM_CLIENT_ID,
         clientSecret: INSTAGRAM_CLIENT_SECRET,
-        redirectUri: `https://${APP_DOMAIN}/api/plat/meta/auth/back`,
-        promotionRedirectUri: `https://${APP_DOMAIN}/api/plat/meta/auth/redirect`,
-        promotionBaseUrl: `https://${APP_DOMAIN}/promo`,
+        redirectUri: `${APP_PROTOCOL}://${APP_DOMAIN}/api/plat/meta/auth/back`,
+        promotionRedirectUri: `${APP_PROTOCOL}://${APP_DOMAIN}/api/plat/meta/auth/redirect`,
+        promotionBaseUrl: `${APP_PROTOCOL}://${APP_DOMAIN}/promo`,
         scopes: [
           'instagram_business_basic',
           'instagram_business_manage_comments',
@@ -220,7 +225,7 @@ module.exports = {
       linkedin: {
         clientId: LINKEDIN_CLIENT_ID,
         clientSecret: LINKEDIN_CLIENT_SECRET,
-        redirectUri: `https://${APP_DOMAIN}/api/plat/meta/auth/back`,
+        redirectUri: `${APP_PROTOCOL}://${APP_DOMAIN}/api/plat/meta/auth/back`,
         scopes: ['openid', 'profile', 'email', 'w_member_social'],
       },
     },
@@ -229,7 +234,7 @@ module.exports = {
       secret: WXPLAT_APP_SECRET,
       token: 'aitoearn',
       encodingAESKey: WXPLAT_ENCODING_AES_KEY,
-      authBackHost: `https://${APP_DOMAIN}/platcallback`,
+      authBackHost: `${APP_PROTOCOL}://${APP_DOMAIN}/platcallback`,
     },
     myWxPlat: {
       id: 'dev',
@@ -239,12 +244,12 @@ module.exports = {
     youtube: {
       id: YOUTUBE_CLIENT_ID,
       secret: YOUTUBE_CLIENT_SECRET,
-      authBackHost: `https://${APP_DOMAIN}/api/plat/youtube/auth/callback`,
+      authBackHost: `${APP_PROTOCOL}://${APP_DOMAIN}/api/plat/youtube/auth/callback`,
     },
     douyin: {
       id: DOYIN_CLIENT_ID,
       secret: DOYIN_CLIENT_SECRET,
-      authBackHost: `https://${APP_DOMAIN}/api/plat/douyin/auth/back`,
+      authBackHost: `${APP_PROTOCOL}://${APP_DOMAIN}/api/plat/douyin/auth/back`,
     },
   },
 

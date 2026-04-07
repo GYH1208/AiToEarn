@@ -46,6 +46,7 @@ export function ConnectChannelList() {
       token: state.token,
     })),
   )
+  const isNoAuthMode = process.env.NEXT_PUBLIC_DISABLE_AUTH === 'true'
 
   // 返回主页
   const handleBack = () => {
@@ -60,8 +61,8 @@ export function ConnectChannelList() {
       return
     }
 
-    // 未登录时关闭频道弹框并跳转登录页
-    if (!token) {
+    // 标准模式下未登录才跳转登录；免登录模式允许继续
+    if (!token && !isNoAuthMode) {
       closeModal()
       navigateToLogin()
       return

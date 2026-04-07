@@ -29,8 +29,6 @@ interface TabConfig {
   key: SettingsTab
   icon: ReactNode
   label: string
-  /** 是否需要登录才能显示 */
-  requireAuth?: boolean
 }
 
 /** 设置页面类型（导出供外部使用） */
@@ -51,24 +49,14 @@ export interface SettingsModalProps {
 export function SettingsModal({ open, onClose, defaultTab }: SettingsModalProps) {
   // 预加载所有子组件需要的 namespace，避免切换 tab 时闪烁
   const { t } = useTransClient(['settings', 'profile'])
-  const token = useUserStore(state => state.token)
-  const isLoggedIn = !!token
-  const [activeTab, setActiveTab] = useState<SettingsTab>(isLoggedIn ? 'profile' : 'general')
+  const [activeTab, setActiveTab] = useState<SettingsTab>('profile')
   const tabContainerRef = useRef<HTMLDivElement>(null)
 
   // 打开弹框时，如果有 defaultTab 则使用它
   useEffect(() => {
-    if (open && defaultTab && isLoggedIn) {
+    if (open && defaultTab)
       setActiveTab(defaultTab)
-    }
-  }, [open, defaultTab, isLoggedIn])
-
-  // 登录状态变化时重置标签
-  useEffect(() => {
-    if (!isLoggedIn && activeTab === 'profile') {
-      setActiveTab('general')
-    }
-  }, [isLoggedIn, activeTab])
+  }, [open, defaultTab])
 
   // 选中 Tab 自动居中（仅移动端水平滚动时生效）
   useEffect(() => {
@@ -114,23 +102,15 @@ export function SettingsModal({ open, onClose, defaultTab }: SettingsModalProps)
       key: 'profile',
       icon: <User className="h-4 w-4" />,
       label: t('tabs.profile'),
-      requireAuth: true,
     },
     { key: 'general', icon: <Globe className="h-4 w-4" />, label: t('tabs.general') },
   ]
-
-  // 根据登录状态过滤 Tab
-  const visibleTabs = tabConfigs.filter((tab) => {
-    if (tab.requireAuth && !isLoggedIn)
-      return false
-    return true
-  })
 
   // 渲染右侧内容
   const renderContent = () => {
     switch (activeTab) {
       case 'profile':
-        return isLoggedIn ? <ProfileTab onClose={onClose} /> : <GeneralTab />
+        return <ProfileTab onClose={onClose} />
       case 'general':
         return <GeneralTab />
       default:
@@ -161,7 +141,7 @@ export function SettingsModal({ open, onClose, defaultTab }: SettingsModalProps)
 
             {/* Tab 列表 - 移动端水平滚动，桌面端垂直列表 */}
             <div ref={tabContainerRef} className="relative flex gap-1 overflow-x-auto scrollbar-none snap-x snap-mandatory px-3 pb-3 md:flex-col md:snap-none md:overflow-x-visible md:px-3 md:pb-4">
-              {visibleTabs.map((tab) => {
+              {tabConfigs.map((tab) => {
                 const isActive = activeTab === tab.key
 
                 return (

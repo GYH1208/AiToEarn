@@ -6,7 +6,6 @@ import { useTransClient } from '@/app/i18n/client'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { useUserStore } from '@/store/user'
-import { navigateToLogin } from '@/utils/auth'
 import { getOssUrl } from '@/utils/oss'
 
 export function MobileUserSection({
@@ -17,9 +16,9 @@ export function MobileUserSection({
   const token = useUserStore(state => state.token)
   const userInfo = useUserStore(state => state.userInfo)
 
-  const handleLogin = () => {
+  const handleOpenPersonalCenter = () => {
     onClose()
-    navigateToLogin()
+    onOpenSettings('profile')
   }
 
   if (token && userInfo) {
@@ -51,8 +50,8 @@ export function MobileUserSection({
   }
 
   return (
-    <Button onClick={handleLogin} className="w-full cursor-pointer" data-testid="mobile-login-btn">
-      {t('login')}
+    <Button onClick={handleOpenPersonalCenter} className="w-full cursor-pointer" data-testid="mobile-login-btn">
+      个人中心
     </Button>
   )
 }
